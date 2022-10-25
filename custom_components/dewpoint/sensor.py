@@ -30,7 +30,7 @@ from homeassistant.const import (
     CONF_SENSORS,
     EVENT_HOMEASSISTANT_START, 
     ATTR_TEMPERATURE,
-    ATTR_UNIT_OF_MEASUREMENT
+    ATTR_NATIVE_UNIT_OF_MEASUREMENT
 )
 
 from homeassistant.core import callback
@@ -108,7 +108,7 @@ class DewPointSensor(SensorEntity):
             _LOGGER.error('Unable to read temperature from unavailable sensor: %s', state.entity_id)
             return
 
-        unit = state.attributes.get(ATTR_UNIT_OF_MEASUREMENT)
+        unit = state.attributes.get(ATTR_NATIVE_UNIT_OF_MEASUREMENT)
         temp = util.convert(state.state, float)
 
         if temp is None:
@@ -116,11 +116,7 @@ class DewPointSensor(SensorEntity):
                           " %s", state.entity_id, state.state)
             return None
 
-        # convert to celsius if necessary
-        if unit == TEMP_FAHRENHEIT:
-            return util.temperature.fahrenheit_to_celsius(temp)
-        if unit == TEMP_CELSIUS:
-            return temp
+        return unit_conversion.TemperatureConverter(temp)
         _LOGGER.error("Temp sensor %s has unsupported unit: %s (allowed: %s, "
                       "%s)", state.entity_id, unit, TEMP_CELSIUS,
                       TEMP_FAHRENHEIT)
@@ -139,7 +135,7 @@ class DewPointSensor(SensorEntity):
             _LOGGER.error('Unable to read relative humidity from unavailable sensor: %s', state.entity_id)
             return
 
-        unit = state.attributes.get(ATTR_UNIT_OF_MEASUREMENT)
+        unit = state.attributes.get(ATTR_NATIVE_UNIT_OF_MEASUREMENT)
         hum = util.convert(state.state, float)
 
         if hum is None:
